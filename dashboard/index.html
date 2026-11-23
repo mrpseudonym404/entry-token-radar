@@ -10,18 +10,19 @@
 <header class="top">
   <div class="wrap top-in">
     <div class="brand"><span class="dot"></span>Token Radar</div>
-    <div class="top-meta"><span>Snapshot <b id="snapDate">2026-11-14</b></span><span class="sep">·</span><span>Model <b>radar-2</b></span><span class="sep">·</span><span id="topCount"></span></div>
+    <div class="top-meta"><span>Snapshot <b id="snapDate">2026-11-14</b></span><span class="sep">·</span><span>Model <b>radar-4</b></span><span class="sep">·</span><span id="topCount"></span></div>
   </div>
 </header>
 <main class="wrap">
   <section class="intro">
     <h1>What would the token be worth?</h1>
-    <p class="sub">178 protocols that record no token, ranked by implied value — TVL times the median FDV/TVL of listed peers in the same category. Every number on this board is recomputed in your browser from the snapshot figures.</p>
+    <p class="sub">178 protocols that record no token, ranked by implied value — TVL × a shrunk category multiple × growth, breadth and age. Recomputed live in your browser from the snapshot figures.</p>
   </section>
+  <div class="funnel" id="funnel">758 in snapshot → 40 watchlist + 138 below the $50M floor = 178 ranked · 20 above floor not on board · 560 not rankable (416 tokenized, 128 excluded category, 16 by name).</div>
   <section class="kpis" aria-label="Summary">
     <div class="kpi"><div class="kpi-l">Total implied value</div><div class="kpi-n" id="kpiTotal">$0</div><div class="kpi-s">Sum of all 178 rows</div></div>
-    <div class="kpi"><div class="kpi-l">Protocols ranked</div><div class="kpi-n" id="kpiCount">0</div><div class="kpi-s">40 on the watchlist · 138 below the floor</div></div>
-    <div class="kpi"><div class="kpi-l">Farmable</div><div class="kpi-n" id="kpiFarm">0</div><div class="kpi-s">With a manual farm plan</div></div>
+    <div class="kpi"><div class="kpi-l">Protocols ranked</div><div class="kpi-n" id="kpiCount">0</div><div class="kpi-s" id="kpiCountS">40 on the watchlist · 138 below the floor</div></div>
+    <div class="kpi"><div class="kpi-l">Farmable</div><div class="kpi-n" id="kpiFarm">0</div><div class="kpi-s">Generated from each protocol's own record</div></div>
     <div class="kpi"><div class="kpi-l">#1 protocol</div><div class="kpi-n" id="kpiTop">—</div><div class="kpi-s" id="kpiTopV"></div></div>
   </section>
   <section class="hero" id="hero" aria-label="Top protocol">
@@ -30,17 +31,13 @@
       <div class="hero-name" id="heroName">—</div>
       <div class="hero-meta" id="heroMeta"></div>
       <div class="hero-val" id="heroVal">$0</div>
-      <div class="hero-sub">Implied value · TVL × category multiple × adjustments</div>
     </div>
     <div class="hero-r" id="heroBars"></div>
   </section>
-  <section class="live" id="liveSec" hidden>
-    <div class="sec-h">Already trading — not ranked <span class="sec-s">These record a token, so they set the peer multiples. They are not launch candidates.</span></div>
-    <div class="live-row" id="liveRow"></div>
-  </section>
   <section class="filters" aria-label="Filters">
-    <input id="q" type="search" placeholder="Search name, slug or category…" autocomplete="off" aria-label="Search">
+    <input id="q" type="search" placeholder="Search protocols…" autocomplete="off" aria-label="Search">
     <select id="cat" aria-label="Category"><option value="">All categories</option></select>
+    <select id="chain" aria-label="Chain"><option value="">All chains</option></select>
     <div class="seg" id="tvlSeg" role="group" aria-label="TVL range">
       <button data-tvl="" class="on">All TVL</button><button data-tvl="1b">≥$1B</button><button data-tvl="500m">$500M–$1B</button><button data-tvl="100m">$100–500M</button><button data-tvl="lt100">&lt;$100M</button>
     </div>
@@ -48,24 +45,25 @@
     <select id="sort" aria-label="Sort">
       <option value="implied-desc">Implied value ↓</option><option value="implied-asc">Implied value ↑</option>
       <option value="tvl-desc">TVL ↓</option><option value="tvl-asc">TVL ↑</option>
-      <option value="mult-desc">Multiple ↓</option><option value="mult-asc">Multiple ↑</option>
+      <option value="mult-desc">M_cat ↓</option><option value="mult-asc">M_cat ↑</option>
       <option value="chg-desc">7d change ↓</option><option value="chg-asc">7d change ↑</option>
       <option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option>
     </select>
     <button id="reset" class="reset" hidden>Reset</button>
   </section>
-  <div class="count" id="count"></div>
+  <div class="countrow"><div class="count" id="count"></div>
+  <p class="tbl-note">Bars scaled to the highest implied value in this filter. <b>M_cat</b> is the shrunk category multiple — not implied ÷ TVL.</p></div>
   <section class="tbl-wrap">
     <table id="board">
       <thead><tr>
         <th data-k="rank" class="c">#</th>
-        <th data-k="name">Protocol</th>
+        <th data-k="name">Protocol <span class="arr"></span></th>
         <th data-k="category">Category</th>
         <th>Chains</th>
-        <th data-k="tvl" class="r">TVL</th>
-        <th data-k="chg" class="r">7d</th>
-        <th data-k="implied" class="r on">Implied Value</th>
-        <th data-k="mult" class="r">Multiple</th>
+        <th data-k="tvl" class="r">TVL <span class="arr"></span></th>
+        <th data-k="chg" class="r">7d <span class="arr"></span></th>
+        <th data-k="implied" class="r on">Implied Value <span class="arr"></span></th>
+        <th data-k="mult" class="r">M_cat <span class="arr"></span></th>
         <th class="c">Farm</th>
       </tr></thead>
       <tbody id="body"></tbody>
@@ -76,9 +74,13 @@
     </div>
   </section>
   <nav class="pager" id="pager" aria-label="Pages"></nav>
+  <section class="live" id="liveSec" hidden>
+    <div class="sec-h">Already trading — not ranked <span class="sec-s">These record a token, so they set the peer multiples. They are not launch candidates.</span></div>
+    <div class="live-row" id="liveRow"></div>
+  </section>
   <footer class="foot">
-    <p><b>Method.</b> Implied value = TVL x median FDV/TVL of listed protocols in the same category (min. 3 peers; global median 0.17 if fewer). Farm plans are manual per-protocol assessments, not financial advice. Snapshot 2026-11-14. A protocol 'records no token' — the snapshot carries no airdrop flag and no launch date.</p>
-    <p class="foot-s">Model radar-2 · Implied = TVL × M<sub>cat</sub> × G × B × A × D · Recomputed live on this page from the snapshot. Source: DefiLlama protocols snapshot, 2026-11-14.</p>
+    <p><b>Method.</b> Implied value = TVL × M_cat × G × B × A. M_cat is the category multiple, shrunk toward the global median: M_cat = (n × category median + 5 × global median) / (n + 5), k = 5, where n is the number of tokenized peers in the category. A category with few peers is pulled toward the global median 0.1689 instead of trusting a thin median. The old flat 0.50 haircut was dropped — its conservatism now lives in the shrinkage. G rewards 7-day TVL momentum, B rewards breadth across chains, A peaks at 1–2 years and falls for very old protocols. Farm plans are generated from each protocol's own record, not financial advice. The 20 rankable protocols above the $50M floor are not on the board: the house watchlist drops them for reasons outside the snapshot's ten fields (a parent protocol), so they are conservatively held out. Snapshot 2026-11-14. A protocol 'records no token' — the snapshot carries no airdrop flag and no launch date.</p>
+    <p class="foot-s">Model radar-4 · Implied = TVL × M_cat × G × B × A · Recomputed live on this page from the snapshot. Source: DefiLlama protocols snapshot, 2026-11-14.</p>
   </footer>
 </main>
 <div class="overlay" id="ov" hidden role="dialog" aria-modal="true" aria-label="Protocol detail">
